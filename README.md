@@ -51,3 +51,8 @@ You could also set up all in _AWS_ (_S3_ and _DynamoDB_) but for simplicity you 
   - `$ terraform init` configures the backend "remote". So TF will automatically use this
   - `$ terraform plan` check changes. This will only show the run process in the remote
   - `$ terraform apply` applies the plan in the remote and provides the run URL
+
+An example of a simple _web app_ can be found [here](02-remote-backend/web_app/mainf.tf)
+
+> NOTE: It looks like the latest terraform version has currently a bug where you cannot use the credentials in your local, e.g. `~/.aws`. So you will need to hard code it.
+> <br>Related docs: https://registry.terraform.io/providers/hashicorp/aws/latest/docs
