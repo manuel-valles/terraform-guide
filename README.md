@@ -52,7 +52,56 @@ You could also set up all in _AWS_ (_S3_ and _DynamoDB_) but for simplicity you 
   - `$ terraform plan` check changes. This will only show the run process in the remote
   - `$ terraform apply` applies the plan in the remote and provides the run URL
 
-An example of a simple _web app_ can be found [here](02-remote-backend/web_app/mainf.tf)
+An example of a _web app_ can be found [here](02-remote-backend/web_app/mainf.tf). You can check all the created resources on the corresponding region on the GUI, and try the balancer with the DNS name shown in the details section, e.g. http://tf-guide-web-app-lb-230187502.eu-west-2.elb.amazonaws.com/
 
-> NOTE: It looks like the latest terraform version has currently a bug where you cannot use the credentials in your local, e.g. `~/.aws`. So you will need to hard code it.
+> NOTE: It looks like the latest terraform version has currently a bug where you cannot use the credentials in your local, e.g. `~/.aws`. So you will need to hard code it or create cloud variables set: https://developer.hashicorp.com/terraform/tutorials/cloud-get-started/cloud-create-variable-set.
 > <br>Related docs: https://registry.terraform.io/providers/hashicorp/aws/latest/docs
+
+## 2. Variables
+
+## 2.1. Types & Validation
+
+Type checking happens automatically, and custom conditions can also be enforced. The **types** are:
+
+- Primitive:
+  - _string_
+  - _number_
+  - _bool_
+- Complex:
+  - _list(`<Type>`)_
+  - _set(`<Type>`)_
+  - _map(`<Type>`)_
+  - _object({ `<Attr name>` = `<Type>`, ... })_
+  - _tuple([`<Type>`, ...])_
+
+An example of variable block would be:
+
+```tf
+variable "var_name" {
+  type = string
+}
+```
+
+Regarding **sensitive data**, you can:
+
+- Mark variable as sensitive with `sensitive = true`
+- Pass to TF apply with `TF_VAR_<name>` or retrieve them from secret manager at runtime with `-var`, e.g. `terraform apply -var="db_user=manukem" -var="db_pass=super_secure-one"`
+- Use external secret store, e.g. `AWS Secrets Manager`
+
+> NOTE: TF will pick the variables located in `variables.tf` or `<name>.auto.tfvars`. So if you want to specified any other file you will need to do add the flag `-var-file=`, e.g. `$ terraform apply -var-file=another-filename.tfvars`.
+> <br> However, this doesn't work with remote backend. So will need to add it to the `tfvars` and remove it or add some dummy data before any push to any remote git.
+
+**Local variables** allow to store the value of an expression for reuse but not for passing in values:
+
+```tf
+locals {
+  extra_tag = "extra-tag"
+}
+```
+
+You can also **output** some value, which might not be known ahead of time, like the IP address of a new VM. This will be output after `terraform apply` or `terraform output`. For example, [this](03-variables/example/outputs.tf) will output something like:
+
+```sh
+db_instance_addr = "terraform-20230319125949854300000001.cl7bhry90jzi.eu-west-2.rds.amazonaws.com"
+instance_ip_addr = "172.31.34.146"
+```
